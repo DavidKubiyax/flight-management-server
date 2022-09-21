@@ -1,19 +1,27 @@
 import { Airplane } from "./types";
 import express from "express";
 import http from "http";
+import cors from "cors";
 import { Server, Socket } from "socket.io";
 import { generateUUID } from "./utils";
 import { airports } from "./airportList";
 import moment from "moment";
 
-const PORT = 6000;
+const PORT = 4963;
 const TIME_FORMAT = "dd/MM/yyyy - HH:mm";
 
 const app = express();
 app.use(express.json());
-const server = http.createServer(app);
-const io = new Server(server);
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" },
+});
 
 const planes: Airplane[] = [];
 
@@ -53,15 +61,19 @@ function publishEntityUpdate(socket: Socket) {
   const randomIndex = Math.floor(Math.random() * planes.length);
   const randomPlane = planes[randomIndex];
   const actionType = Math.floor(Math.random() * 3);
-  switch(actionType) {
+  switch (actionType) {
     case 0: // status update
       const malfunctionChance = Math.random();
-      randomPlane.status = malfunctionChance > 0.9? "malfunction" : "flight";
+      randomPlane.status = malfunctionChance > 0.9 ? "malfunction" : "flight";
       break;
     case 1: // time delay
       const delayByMin = Math.floor(Math.random() * 120);
-      randomPlane.takeoffTime = moment(randomPlane.takeoffTime, TIME_FORMAT).add(delayByMin, "minutes").format(TIME_FORMAT);
-      randomPlane.landingTime = moment(randomPlane.landingTime, TIME_FORMAT).add(delayByMin, "minutes").format(TIME_FORMAT);
+      randomPlane.takeoffTime = moment(randomPlane.takeoffTime, TIME_FORMAT)
+        .add(delayByMin, "minutes")
+        .format(TIME_FORMAT);
+      randomPlane.landingTime = moment(randomPlane.landingTime, TIME_FORMAT)
+        .add(delayByMin, "minutes")
+        .format(TIME_FORMAT);
       break;
     case 2: // destination update
       const newDestination = airports[Math.floor(Math.random() * 50)];
