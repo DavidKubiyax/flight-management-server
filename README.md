@@ -12,8 +12,8 @@ The app has been written in a minimalistic fashion and by no means does it repre
 
 This back-end Node app offers two interfaces running on port `4963`:
 
-1. Socket.io interface for data update streams on airplanes.
-2. HTTP RESTful interface for getting a list of airplanes (`GET /planes`) or a specific airplane (`GET /planes/:id`).
+1. Socket.io interface for data update streams on flights (`EVENT: flight-update`).
+2. HTTP RESTful interface for getting a list of flights (`GET: /flights`) or a specific flight (`GET: /flights/:flightNumber`).
 
 ## Important notes:
 

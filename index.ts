@@ -1,9 +1,9 @@
-import { Airplane } from "./types";
+import { Flight } from "./types";
 import express from "express";
 import http from "http";
 import cors from "cors";
 import { Server, Socket } from "socket.io";
-import { generateUUID } from "./utils";
+import { generateFlightNumber } from "./utils";
 import { airports } from "./airportList";
 import moment from "moment";
 
@@ -23,7 +23,7 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-const planes: Airplane[] = [];
+const flights: Flight[] = [];
 
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -32,13 +32,13 @@ io.on("connection", (socket) => {
   }, 300);
 });
 
-app.get("/planes", (req, res) => {
-  res.json({ planes });
+app.get("/flights", (req, res) => {
+  res.json({ flights });
 });
 
-app.get("/planes/:id", (req, res) => {
-  const plane = planes.find((p) => p.id === req.params.id);
-  res.json(plane);
+app.get("/flights/:flightNum", (req, res) => {
+  const flight = flights.find((p) => p.flightNumber === req.params.flightNum);
+  res.json(flight);
 });
 
 server.listen(PORT, () => {
@@ -46,8 +46,8 @@ server.listen(PORT, () => {
   for (let i = 0; i < 50; i++) {
     const randomAP1 = Math.floor(Math.random() * 50);
     const randomAP2 = Math.floor(Math.random() * 50);
-    planes.push({
-      id: generateUUID(),
+    flights.push({
+      flightNumber: generateFlightNumber(),
       status: "hangar",
       takeoffTime: "01/02/2022 - 12:35",
       landingTime: "02/02/2022 - 14:30",
@@ -58,27 +58,38 @@ server.listen(PORT, () => {
 });
 
 function publishEntityUpdate(socket: Socket) {
-  const randomIndex = Math.floor(Math.random() * planes.length);
-  const randomPlane = planes[randomIndex];
+  const randomIndex = Math.floor(Math.random() * flights.length);
+  const randomFlight = flights[randomIndex];
   const actionType = Math.floor(Math.random() * 3);
   switch (actionType) {
     case 0: // status update
-      const malfunctionChance = Math.random();
-      randomPlane.status = malfunctionChance > 0.9 ? "malfunction" : "flight";
+      const chance = Math.random();
+      switch (randomFlight.status) {
+        case "hangar":
+          randomFlight.status = chance >= 0.9 ? "malfunction" : "airborne";
+          break;
+        case "airborne":
+          randomFlight.status =
+            chance >= 0.9 ? "malfunction" : chance >= 0.7 ? "hangar" : "airborne";
+          break;
+        case "malfunction":
+          randomFlight.status = chance >= 0.9 ? "hangar" : "malfunction";
+          break;
+      }
       break;
     case 1: // time delay
       const delayByMin = Math.floor(Math.random() * 120);
-      randomPlane.takeoffTime = moment(randomPlane.takeoffTime, TIME_FORMAT)
+      randomFlight.takeoffTime = moment(randomFlight.takeoffTime, TIME_FORMAT)
         .add(delayByMin, "minutes")
         .format(TIME_FORMAT);
-      randomPlane.landingTime = moment(randomPlane.landingTime, TIME_FORMAT)
+      randomFlight.landingTime = moment(randomFlight.landingTime, TIME_FORMAT)
         .add(delayByMin, "minutes")
         .format(TIME_FORMAT);
       break;
     case 2: // destination update
       const newDestination = airports[Math.floor(Math.random() * 50)];
-      randomPlane.landingAirport = newDestination;
+      randomFlight.landingAirport = newDestination;
       break;
   }
-  socket.emit("plane-update", randomPlane);
+  socket.emit("flight-update", randomFlight);
 }
