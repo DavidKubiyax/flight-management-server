@@ -8,7 +8,7 @@ import { airports } from "./airportList";
 import moment from "moment";
 
 const PORT = 4963;
-const TIME_FORMAT = "dd/MM/yyyy - HH:mm";
+const TIME_FORMAT = "DD/MM/yyyy - HH:mm";
 
 const app = express();
 app.use(express.json());
