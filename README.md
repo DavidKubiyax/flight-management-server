@@ -3,6 +3,10 @@
 This is the back-end for the Kubiya interview exam.
 The app has been written in a minimalistic fashion and by no means does it represent real data or any best practice for writing a back-end server app.
 
+## Dependencies:
+
+- [Node.js](https://nodejs.org/en/)
+
 ## How to run:
 
 1. `npm install`
